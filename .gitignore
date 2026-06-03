@@ -1,0 +1,39 @@
+# Visual Studio
+.vs/
+Debug/
+Release/
+x64/
+x86/
+bin/
+obj/
+
+# Archivos de usuario
+*.user
+*.suo
+
+# Bases de datos de IntelliSense
+*.VC.db
+*.VC.opendb
+
+# Librerías Allegro locales
+allegro/
+Allegro/
+libs/
+lib/
+include/
+
+# Otros
+*.pdb
+*.ilk
+*.log
+
+packages/
+.vs/
+Debug/
+Release/
+x64/
+x86/
+bin/
+obj/
+*.user
+*.suo
