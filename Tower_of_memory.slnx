@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Tower_of_memory/Tower_of_memory.vcxproj" />
+  <Project Path="Tower_of_memory/Tower_of_memory.vcxproj" Id="18389f98-1817-48af-aa17-bc32aed792b1" />
 </Solution>
