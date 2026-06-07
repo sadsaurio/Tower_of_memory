@@ -45,7 +45,12 @@ struct Item {
 static Item* items = NULL;
 static int   num_items = 0;
 #define ARCHIVO_BIN "tower_of_memory_books.bin" // archivo binario de persistencia
-
+static bool item_encontrado = false;
+static char mod_id[8] = "";
+static char mod_titulo[TAM] = "";
+static char mod_autor[TAM] = "";
+static char mod_año[8] = "";
+static char mod_genero[TAM] = "";
 // ── Funciones de archivo y memoria (estilo del codigo original) ──────
 
 // carga los items del archivo binario al iniciar — similar a fopen del original
@@ -123,6 +128,32 @@ void liberar_items() {
     free(items);
     items = NULL;
     num_items = 0;
+}
+// modificar un item por id
+void modificar_item(int id, const char* titulo, const char* autor, int año, const char* genero) {
+    for (int i = 0; i < num_items; i++) {
+        if (items[i].id == id) {
+            strncpy_s(items[i].titulo, TAM, titulo, TAM - 1);
+            strncpy_s(items[i].autor, TAM, autor, TAM - 1);
+            items[i].año = año;
+            strncpy_s(items[i].genero, TAM, genero, TAM - 1);
+            guardar_items();
+            return;
+        }
+    }
+}
+void buscar_item(int id) {
+    item_encontrado = false;
+    for (int i = 0; i < num_items;i++) {
+        if (items[i].id == id) {
+            strcpy_s(mod_titulo, items[i].titulo);
+            strcpy_s(mod_autor, items[i].autor);
+            sprintf_s(mod_año,"%d", items[i].año);
+            strcpy_s(mod_genero, items[i].genero);
+            item_encontrado = true;
+            return;
+        }
+    }
 }
 
 // ── Variables de estado del formulario de pagina1 (alta) ─────────────
@@ -284,7 +315,7 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
         // filas alternadas para mejor lectura
         ALLEGRO_COLOR fila = (i % 2 == 0) ? al_map_rgb(248, 248, 248) : al_map_rgb(232, 232, 232);
         al_draw_filled_rectangle(x - 2, y - 2, SW - 20, y + 14, fila);
-
+        
         char id_str[8];   snprintf(id_str, 8, "%d", items[i].id);
         char año_str[8]; snprintf(año_str, 8, "%d", items[i].año);
 
@@ -301,10 +332,31 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
     }
 }
 
-static void dibujar_pagina3(ALLEGRO_FONT* font)
-{
+static void dibujar_pagina3(ALLEGRO_FONT* font){
+    float x = FORM_X;
+    al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "MODIFICAR ITEM");
 
+    al_draw_line(x, 45, x + FORM_FW, 45, COLOR_BORDER, 1);
+    al_draw_text(font, al_map_rgb(0, 0, 0), x, 70, 0, "ID: ");
+    al_draw_rectangle(x + 40, 65, x + 120, 90, COLOR_BORDER, 1);
+    al_draw_text(font, al_map_rgb(0, 0, 0), x + 45, 70, 0,mod_id);
 
+    al_draw_filled_rectangle(x + 140, 65, x + 220, 90, al_map_rgb(70, 120, 180));
+    al_draw_text(font, COLOR_TEXT, x + 180, 72, ALLEGRO_ALIGN_CENTRE, "BUSCAR");
+
+    if (item_encontrado) {
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 120, 0, "Titulo: ");
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 160, 0, mod_titulo);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 200, 0, "Autor: ");
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 240, 0, mod_autor);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 280, 0, "Año: ");
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 320, 0, mod_año);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 360, 0, "Genero: ");
+        al_draw_text(font, al_map_rgb(0, 0, 0), x, 400, 0, mod_genero);
+
+        al_draw_filled_rectangle(x, 450, x + 140, 480, al_map_rgb(60, 130, 60));
+        al_draw_text(font, COLOR_TEXT, x + 70, 458, ALLEGRO_ALIGN_CENTRE, "GUARDAR");
+    }
 }
 
 static void dibujar_pagina4(ALLEGRO_FONT* font)
@@ -417,6 +469,12 @@ int main()
                     }
                 }
             }
+            // pagina 3
+            if (current_page == SEC_PAGE3) {
+                if (mx >= FORM_X + 140 && mx <= FORM_X + 220 && my >= 65 && my <= 90) {
+                    buscar_item(atoi(mod_id));
+                }
+            }
         }
 
         // Salir con ESC
@@ -444,7 +502,23 @@ int main()
                     }
                 }
             }
+            // pagina 3 :Modificar
+            if (current_page == SEC_PAGE3){
+                int len = (int)strlen(mod_id);
+                if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE){
+                    if (len > 0) {
+                        mod_id[len - 1] = '\0';
+                    }
+                }
+                else if (ev.keyboard.unichar >= '0' && ev.keyboard.unichar <= '9'){
+                    if (len < 7){
+                        mod_id[len] = (char)ev.keyboard.unichar;
+                        mod_id[len + 1] = '\0';
+                    }
+                }
+            }
         }
+        
 
         // Dibujo
         if (redraw && al_is_event_queue_empty(queue))
