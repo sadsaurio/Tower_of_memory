@@ -138,12 +138,17 @@ void modificar_item(int id, const char* titulo, const char* autor, int año, con
             items[i].año = año;
             strncpy_s(items[i].genero, TAM, genero, TAM - 1);
             guardar_items();
+            printf("MODIFICADO\n");
             return;
         }
     }
 }
 void buscar_item(int id) {
     item_encontrado = false;
+    mod_titulo[0] = '\0';
+    mod_autor[0] = '\0';
+    mod_año[0] = '\0';
+    mod_genero[0] = '\0';
     for (int i = 0; i < num_items;i++) {
         if (items[i].id == id) {
             strcpy_s(mod_titulo, items[i].titulo);
@@ -162,7 +167,9 @@ static char input_autor[TAM] = "";
 static char input_año[8] = "";
 static char input_genero[TAM] = "";
 static int  campo_activo = 0;     // 0=titulo 1=autor 2=año 3=genero
-static char msg_status[64] = "";    // mensaje de feedback al usuario
+static char msg_status[64] = "";  // mensaje de feedback al usuario
+
+static int campo_mod_activo = 0;
 
 // posiciones y medidas del formulario — constantes para no recalcular
 static const float FORM_X = SIDEBAR_W + 20;
@@ -346,17 +353,46 @@ static void dibujar_pagina3(ALLEGRO_FONT* font){
 
     if (item_encontrado) {
         al_draw_text(font, al_map_rgb(0, 0, 0), x, 120, 0, "Titulo: ");
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 160, 0, mod_titulo);
+        ALLEGRO_COLOR caja = (campo_mod_activo == 0) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
+        al_draw_filled_rectangle(x, 140, x + FORM_FW,162, caja);
+        al_draw_rectangle(x, 140, x + FORM_FW, 162, COLOR_BORDER, 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x + 4, 144, 0, mod_titulo);
+        if (campo_mod_activo == 0) {
+            int tw = al_get_text_width(font, mod_titulo);
+            al_draw_line(x + 5 + tw, 143, x + 5 + tw, 160, al_map_rgb(0, 0, 0), 1);
+        }
         al_draw_text(font, al_map_rgb(0, 0, 0), x, 200, 0, "Autor: ");
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 240, 0, mod_autor);
+        ALLEGRO_COLOR caja1 = (campo_mod_activo == 1) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
+        al_draw_filled_rectangle(x, 220, x + FORM_FW, 242, caja1);
+        al_draw_rectangle(x, 220, x + FORM_FW, 242, COLOR_BORDER, 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x+4, 224, 0, mod_autor);
+        if (campo_mod_activo == 1) {
+            int tw = al_get_text_width(font, mod_autor);
+            al_draw_line(x + 5 + tw, 223, x + 5 + tw, 240, al_map_rgb(0, 0, 0), 1);
+        }
         al_draw_text(font, al_map_rgb(0, 0, 0), x, 280, 0, "Año: ");
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 320, 0, mod_año);
+        ALLEGRO_COLOR caja2 = (campo_mod_activo == 2) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
+        al_draw_filled_rectangle(x, 300, x + FORM_FW, 322, caja2);
+        al_draw_rectangle(x, 300, x + FORM_FW, 322, COLOR_BORDER, 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x+4, 304, 0, mod_año);
+        if (campo_mod_activo == 2) {
+            int tw = al_get_text_width(font, mod_año);
+            al_draw_line(x + 5 + tw, 303, x + 5 + tw, 320, al_map_rgb(0, 0, 0), 1);
+        }
         al_draw_text(font, al_map_rgb(0, 0, 0), x, 360, 0, "Genero: ");
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 400, 0, mod_genero);
+        ALLEGRO_COLOR caja3 = (campo_mod_activo == 3) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
+        al_draw_filled_rectangle(x, 380, x + FORM_FW, 402, caja3);
+        al_draw_rectangle(x, 380, x + FORM_FW, 402, COLOR_BORDER, 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x+4, 384, 0, mod_genero);
+        if (campo_mod_activo == 3) {
+            int tw = al_get_text_width(font, mod_genero);
+            al_draw_line(x + 5 + tw, 383, x + 5 + tw, 400, al_map_rgb(0, 0, 0), 1);
+        }
 
         al_draw_filled_rectangle(x, 450, x + 140, 480, al_map_rgb(60, 130, 60));
         al_draw_text(font, COLOR_TEXT, x + 70, 458, ALLEGRO_ALIGN_CENTRE, "GUARDAR");
     }
+    al_draw_text(font, al_map_rgb(0, 120, 0), x, 520, 0, msg_status);
 }
 
 static void dibujar_pagina4(ALLEGRO_FONT* font)
@@ -471,8 +507,39 @@ int main()
             }
             // pagina 3
             if (current_page == SEC_PAGE3) {
-                if (mx >= FORM_X + 140 && mx <= FORM_X + 220 && my >= 65 && my <= 90) {
+                float bx1 = FORM_X + 140;
+                float by1 = 65;
+                float bx2 = FORM_X + 220;
+                float by2 = 90;
+                if (mx >= bx1 && mx <= bx2 && my >= by1 && my <= by2) {
+                    strcpy_s(msg_status, "Boton Buscar");
                     buscar_item(atoi(mod_id));
+                    if (item_encontrado) {
+                        strcpy_s(msg_status, "Libro encontrado");
+                    }
+                    else {
+                        strcpy_s(msg_status, "ID no encontrado");
+                    }
+                }
+                if (mx >= FORM_X && mx <= FORM_X + FORM_FW) {
+                    if (my >= 140 && my <= 162) {
+                        campo_mod_activo = 0;
+                    }
+                    else if(my>=220&&my<=242){
+                        campo_mod_activo = 1;
+                    }
+                    else if (my >= 300 && my <= 322) {
+                        campo_mod_activo = 2;
+                    }
+                    else if (my >= 380 && my <= 402) {
+                        campo_mod_activo = 3;
+                    }
+                }
+                if (item_encontrado) {
+                    if (mx >= FORM_X && mx <= FORM_X + 140 && my >= 450 && my <= 480) {
+                        modificar_item(atoi(mod_id), mod_titulo, mod_autor, atoi(mod_año), mod_genero);
+                        strcpy_s(msg_status, sizeof(msg_status), "Libro modificado");
+                    }
                 }
             }
         }
@@ -503,17 +570,50 @@ int main()
                 }
             }
             // pagina 3 :Modificar
-            if (current_page == SEC_PAGE3){
+            if (current_page == SEC_PAGE3 && !item_encontrado) {
                 int len = (int)strlen(mod_id);
-                if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE){
+                if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
                     if (len > 0) {
                         mod_id[len - 1] = '\0';
                     }
                 }
-                else if (ev.keyboard.unichar >= '0' && ev.keyboard.unichar <= '9'){
-                    if (len < 7){
+                else if (ev.keyboard.unichar >= '0' && ev.keyboard.unichar <= '9') {
+                    if (len < 7) {
                         mod_id[len] = (char)ev.keyboard.unichar;
                         mod_id[len + 1] = '\0';
+                    }
+                }
+            }
+            
+            //pagina 3 :captura texto
+            if (current_page == SEC_PAGE3 && item_encontrado) {
+                char* campos[] = {
+                    mod_titulo,
+                    mod_autor,
+                    mod_año,
+                    mod_genero
+                };
+                int tams[] = {
+                    TAM,
+                    TAM,
+                    8,
+                    TAM
+                };
+                char* campo = campos[campo_mod_activo];
+                int tam = tams[campo_mod_activo];
+                int len = strlen(campo);
+                if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
+                    if (len > 0) {
+                        campo[len - 1] = '\0';
+                    }
+                }
+                else if (ev.keyboard.keycode == ALLEGRO_KEY_TAB) {
+                    campo_mod_activo = (campo_mod_activo + 1) % 4;
+                }
+                else if (ev.keyboard.unichar >= 32 && ev.keyboard.unichar < 127) {
+                    if (len < tam - 1) {
+                        campo[len] = (char)ev.keyboard.unichar;
+                        campo[len + 1] = '\0';
                     }
                 }
             }
