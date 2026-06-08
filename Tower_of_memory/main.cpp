@@ -26,7 +26,7 @@ static const int SIDEBAR_W = 200;//ancho del sidebar
 
 enum Section { SEC_PAGE1 = 0, SEC_PAGE2, SEC_PAGE3, SEC_PAGE4, SEC_PAGE5 };//enum para mostrar numero de pagina en el que estas
 enum Estado { DISPONIBLE, PRESTADO };
-static const char* BTN_LABELS[] = { "Pagina 1 xd", "Pagina 2", "Pagina 3", "Pagina 4", "Pagina 5" };//texto que se mostrara en los botones de la pagina
+static const char* BTN_LABELS[] = { "Agregar Item", "Lista de Item", "Modificar Item", "Eliminacion Item", "Pagina 5" };//texto que se mostrara en los botones de la pagina
 static Section current_page = SEC_PAGE1;
 
 // ── Estructura de datos (similar a struct Amigo del codigo original) ─
@@ -170,6 +170,7 @@ static int  campo_activo = 0;     // 0=titulo 1=autor 2=año 3=genero
 static char msg_status[64] = "";  // mensaje de feedback al usuario
 
 static int campo_mod_activo = 0;
+static char eliminar_id[8] = "";
 
 // posiciones y medidas del formulario — constantes para no recalcular
 static const float FORM_X = SIDEBAR_W + 20;
@@ -338,7 +339,7 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
         y += 18;
     }
 }
-
+// Modificar
 static void dibujar_pagina3(ALLEGRO_FONT* font){
     float x = FORM_X;
     al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "MODIFICAR ITEM");
@@ -394,9 +395,18 @@ static void dibujar_pagina3(ALLEGRO_FONT* font){
     }
     al_draw_text(font, al_map_rgb(0, 120, 0), x, 520, 0, msg_status);
 }
-
+//Eliminar
 static void dibujar_pagina4(ALLEGRO_FONT* font)
 {
+    float x = FORM_X;
+    al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "ELIMINAR ITEM");
+    al_draw_line(x, 45, x + FORM_FW, 45, COLOR_BORDER, 1);
+    al_draw_text(font, al_map_rgb(0, 0, 0), x, 80, 0, "ID: ");
+    al_draw_rectangle(x + 40, 75, x + 140, 100, COLOR_BORDER, 1);
+    al_draw_text(font, al_map_rgb(0, 0, 0), x + 45, 80, 0, eliminar_id);
+    al_draw_filled_rectangle(x, 140, x + 120, 170, al_map_rgb(180, 40, 40));
+    al_draw_text(font, COLOR_TEXT, x + 60, 140, ALLEGRO_ALIGN_CENTER, "ELIMINAR");
+    al_draw_text(font, al_map_rgb(0, 120, 0), x, 220, 0, msg_status);
 
 
 }
@@ -542,6 +552,21 @@ int main()
                     }
                 }
             }
+            //pagina 4
+            if (current_page == SEC_PAGE4) {
+                if (mx >= FORM_X && mx <= FORM_X + 120 && my >= 140 && my <= 170) {
+                    int id = atoi(eliminar_id);
+                    int antes = num_items;
+                    bajas(id);
+                    if (num_items < antes) {
+                        strcpy_s(msg_status, "Libro eliminado");
+                    }
+                    else {
+                        strcpy_s(msg_status, "ID no encontrado");
+                    }
+                    eliminar_id[0] = '\0';
+                }
+            }
         }
 
         // Salir con ESC
@@ -614,6 +639,21 @@ int main()
                     if (len < tam - 1) {
                         campo[len] = (char)ev.keyboard.unichar;
                         campo[len + 1] = '\0';
+                    }
+                }
+            }
+            //ELIMINAR
+            if (current_page == SEC_PAGE4) {
+                int len = strlen(eliminar_id);
+                if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
+                    if (len > 0) {
+                        eliminar_id[len - 1] = '\0';
+                    }
+                }
+                else if (ev.keyboard.unichar >= '0' && ev.keyboard.unichar <= '9') {
+                    if (len < 7) {
+                        eliminar_id[len] = (char)ev.keyboard.unichar;
+                        eliminar_id[len + 1] = '\0';
                     }
                 }
             }
