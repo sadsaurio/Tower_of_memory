@@ -171,6 +171,8 @@ static char msg_status[64] = "";  // mensaje de feedback al usuario
 
 static int campo_mod_activo = 0;
 static char eliminar_id[8] = "";
+static char buscar_titulo[TAM] = "";
+static bool buscando = false;
 
 // posiciones y medidas del formulario — constantes para no recalcular
 static const float FORM_X = SIDEBAR_W + 20;
@@ -295,12 +297,16 @@ static void dibujar_pagina1(ALLEGRO_FONT* font)
 static void dibujar_pagina2(ALLEGRO_FONT* font)
 {
     float x = FORM_X;
-    float y = 20;
+    float y = 100;
 
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, y, 0, "LISTA DE ITEMS");
-    y += 20;
-    al_draw_line(x, y, SW - 20, y, COLOR_BORDER, 1);
-    y += 8;
+    al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "LISTA DE ITEMS");
+    //La barra de busqueda
+    al_draw_text(font, al_map_rgb(0, 0, 0), x, 55, 0, "Buscar:");
+    al_draw_filled_rectangle(x + 70, 50, x + 300, 75, al_map_rgb(255, 255, 255));
+    al_draw_rectangle(x + 70, 50, x + 300, 75, COLOR_BORDER, 1);
+    al_draw_text(font, al_map_rgb(0, 0, 0), x + 75, 57, 0, buscar_titulo);
+
+    al_draw_line(x,90, SW - 20,90, COLOR_BORDER, 1);
 
     if (num_items == 0) {
         al_draw_text(font, al_map_rgb(150, 150, 150), x, y, 0, "No hay items registrados.");
@@ -308,16 +314,22 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
     }
 
     // encabezados de columna
+    y = 100;
     al_draw_text(font, al_map_rgb(80, 80, 80), x, y, 0, "ID");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 30, y, 0, "Titulo");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 210, y, 0, "Autor");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 390, y, 0, "año");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 445, y, 0, "Estado");
-    y += 16;
+    al_draw_text(font, al_map_rgb(80, 80, 80), x + 40, y, 0, "Titulo");
+    al_draw_text(font, al_map_rgb(80, 80, 80), x + 250, y, 0, "Autor");
+    al_draw_text(font, al_map_rgb(80, 80, 80), x + 430, y, 0, "año");
+    al_draw_text(font, al_map_rgb(80, 80, 80), x + 500, y, 0, "Estado");
+    y += 20;
     al_draw_line(x, y, SW - 20, y, COLOR_BORDER, 1);
     y += 4;
 
     for (int i = 0; i < num_items; i++) {
+        if (strlen(buscar_titulo) > 0) {
+            if (strstr(items[i].titulo, buscar_titulo) == NULL) {
+                continue;
+            }
+        }
         if (y > SH - 20) break; // no salir de pantalla
 
         // filas alternadas para mejor lectura
@@ -328,9 +340,9 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
         char año_str[8]; snprintf(año_str, 8, "%d", items[i].año);
 
         al_draw_text(font, al_map_rgb(0, 0, 0), x, y, 0, id_str);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 30, y, 0, items[i].titulo);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 210, y, 0, items[i].autor);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 390, y, 0, año_str);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x + 40, y, 0, items[i].titulo);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x + 250, y, 0, items[i].autor);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x + 430, y, 0, año_str);
 
         ALLEGRO_COLOR c_estado = (items[i].estado == DISPONIBLE)
             ? al_map_rgb(0, 130, 0) : al_map_rgb(180, 40, 40);
@@ -414,7 +426,6 @@ static void dibujar_pagina4(ALLEGRO_FONT* font)
 static void dibujar_pagina5(ALLEGRO_FONT* font)
 {
     // TODO: tu contenido de pagina 5
-
 }
 
 
@@ -515,6 +526,15 @@ int main()
                     }
                 }
             }
+            //Barra de busqueda
+            if (current_page == SEC_PAGE2) {
+                if (mx >= FORM_X + 70 && mx <= FORM_X + 300 && my >= 45 && my <= 70) {
+                    buscando = true;
+                }
+                else {
+                    buscando = false;
+                }
+            }
             // pagina 3
             if (current_page == SEC_PAGE3) {
                 float bx1 = FORM_X + 140;
@@ -567,6 +587,7 @@ int main()
                     eliminar_id[0] = '\0';
                 }
             }
+    
         }
 
         // Salir con ESC
@@ -591,6 +612,21 @@ int main()
                     if (len < tam - 1) {
                         campo[len] = (char)ev.keyboard.unichar;
                         campo[len + 1] = '\0'; // agregar caracter al campo activo
+                    }
+                }
+            }
+            //Barra de busqueda
+            if (current_page == SEC_PAGE2 && buscando) {
+                int len = strlen(buscar_titulo);
+                if (ev.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
+                    if (len > 0) {
+                        buscar_titulo[len - 1] = '\0';
+                    }
+                }
+                else if (ev.keyboard.unichar >= 32 && ev.keyboard.unichar < 127) {
+                    if (len < TAM - 1) {
+                        buscar_titulo[len] = (char)ev.keyboard.unichar;
+                        buscar_titulo[len + 1] = '\0';
                     }
                 }
             }
