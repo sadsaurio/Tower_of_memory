@@ -349,8 +349,8 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
     al_draw_text(font, al_map_rgb(100, 65, 20), x, y, 0, "ID");
     al_draw_text(font, al_map_rgb(100, 65, 20), x + 50, y, 0, "Titulo");
     al_draw_text(font, al_map_rgb(100, 65, 20), x + 350, y, 0, "Autor");
-    al_draw_text(font, al_map_rgb(100, 65, 20), x + 580, y, 0, "año");
-    al_draw_text(font, al_map_rgb(100, 65, 20), x + 660, y, 0, "Estado");
+    al_draw_text(font, al_map_rgb(100, 65, 20), x + 580, y, 0, "a\xC3\xB1o");
+    al_draw_text(font, al_map_rgb(100, 65, 20), x + 500, y, 0, "Estado");
     y += 18;
     al_draw_line(x, y, SW - 20, y, al_map_rgb(139, 101, 53), 1);
     y += 6;
