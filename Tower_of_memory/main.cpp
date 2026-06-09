@@ -11,17 +11,17 @@
 #include <string.h>
 
 //caracteristicas de la ventana
-static const int SW = 800;//valor de la parte horizontal osea el width :,3
-static const int SH = 600;//valor de la parte vertical osea el height :,3
+static const int SW = 1100;//valor de la parte horizontal osea el width :,3
+static const int SH = 700;//valor de la parte vertical osea el height :,3
 static const int SIDEBAR_W = 200;//ancho del sidebar 
 
 //paleta de colores en rgb 
-#define COLOR_BG        al_map_rgb(240, 240, 240)   // Fondo gris claro
-#define COLOR_SIDEBAR   al_map_rgb(50, 50, 50)      // Sidebar gris oscuro
-#define COLOR_BTN_NORMAL al_map_rgb(80, 80, 80)     // Botón normal
-#define COLOR_BTN_ACTIVE al_map_rgb(120, 120, 120)  // Botón activo
-#define COLOR_TEXT      al_map_rgb(255, 255, 255)   // Texto blanco
-#define COLOR_BORDER    al_map_rgb(100, 100, 100)   // Borde
+#define COLOR_BG        al_map_rgb(200, 165, 100)   // Fondo gris claro
+#define COLOR_SIDEBAR   al_map_rgb(42, 31, 14)      // Sidebar gris oscuro
+#define COLOR_BTN_NORMAL al_map_rgb(61, 42, 15)     // Botón normal
+#define COLOR_BTN_ACTIVE al_map_rgb(90, 61, 21)  // Botón activo
+#define COLOR_TEXT      al_map_rgb(139, 101, 53)   // Texto blanco
+#define COLOR_BORDER    al_map_rgb(232, 200, 122)   // Borde
 
 
 enum Section { SEC_PAGE1 = 0, SEC_PAGE2, SEC_PAGE3, SEC_PAGE4, SEC_PAGE5 };//enum para mostrar numero de pagina en el que estas
@@ -199,40 +199,48 @@ static void draw_sidebar(ALLEGRO_FONT* font)
     al_draw_filled_rectangle(0, 0, SIDEBAR_W, SH, COLOR_SIDEBAR);//esta funcin dibuja un rectngulo relleno, los primeros 4 parametros 
     //son las coordenadas de las esquinas del rectngulo (x1, y1, x2, y2) y el ultimo parametro es el color del rectngulo eso 0,0 es la esquina 
 
+    al_draw_line(4, 0, 4, SH, al_map_rgba(255, 200, 80, 30), 1);
+    al_draw_line(8, 0, 8, SH, al_map_rgba(255, 200, 80, 15), 1);
+    al_draw_line(SIDEBAR_W - 4, 0, SIDEBAR_W - 4, SH, al_map_rgba(255, 200, 80, 30), 1);
+
 
     // Título
-    al_draw_text(font, COLOR_TEXT, SIDEBAR_W / 2, 20, ALLEGRO_ALIGN_CENTRE, "Menu");//escribe menu en el sidebar te pide
+    al_draw_text(font, al_map_rgb(255,220,140),SIDEBAR_W / 2, 12, ALLEGRO_ALIGN_CENTRE, "Menu");//escribe menu en el sidebar te pide
     //la fuente,color,coordenada x, coordenada y, alineacion y el texto a escribir
 
     // Línea separadora
-    al_draw_line(10, 50, SIDEBAR_W - 10, 50, COLOR_BORDER, 1);//dibuja una linea no tiene muhco chiste la veda
+    al_draw_line(8, 38, SIDEBAR_W - 8, 38, al_map_rgb(139,101,53), 1);//dibuja una linea no tiene muhco chiste la veda
+    al_draw_line(8, 41, SIDEBAR_W - 8, 41, al_map_rgb(80, 55, 20), 1);
 
     // Botones de navegación
-    float btn_y = 70;//coordenada y del primer boton
-    float btn_h = 40;//cordenada y del segundo boton
-    float btn_w = SIDEBAR_W - 20;//coordenada x del primer boton
-    float btn_x = 10;//coordenada x del segundo boton
+    float btn_y = 56;//coordenada y del primer boton
+    float btn_h = 38;//cordenada y del segundo boton
+    float btn_w = SIDEBAR_W - 16;//coordenada x del primer boton
+    float btn_x = 8;//coordenada x del segundo boton
 
     for (int i = 0; i < 5; i++) {//ciclo para dibujar 5 botones
         bool active = (i == (int)current_page);
-
+        al_draw_filled_rectangle(btn_x + 2, btn_y + 2, btn_x + btn_w + 2, btn_y + btn_h + 2, al_map_rgba(0, 0, 0, 80));
         // Fondo del botón
         ALLEGRO_COLOR btn_color = active ? COLOR_BTN_ACTIVE : COLOR_BTN_NORMAL;//si el boton es activo se pinta con un color mas claro y si no con un color mas oscuro
         al_draw_filled_rectangle(btn_x, btn_y, btn_x + btn_w, btn_y + btn_h, btn_color);//dibuja el rectangulo del boton con el color correspondiente
         //recibe igual tamano que el rectangulo del sidebar pero con un margen de 10 pixeles a cada lado
-        al_draw_rectangle(btn_x, btn_y, btn_x + btn_w, btn_y + btn_h, COLOR_BORDER, 1);//dibuja el borde del boton con un color de borde
-
+        al_draw_rectangle(btn_x, btn_y, btn_x + btn_w, btn_y + btn_h, al_map_rgb(139,101,53), 1);//dibuja el borde del boton con un color de borde
+        // El borde mas claro el interior
+        al_draw_rectangle(btn_x + 2, btn_y + 2, btn_x + btn_w - 2, btn_y + btn_h - 2, al_map_rgba(200, 150, 60, active ? 180 : 80), 1);
         // Texto del botón
-        al_draw_text(font, COLOR_TEXT, btn_x + btn_w / 2, btn_y + btn_h / 2 - 6, ALLEGRO_ALIGN_CENTRE, BTN_LABELS[i]);//usa ek arreglo anteriior para poder saber 
+        ALLEGRO_COLOR txt = active ? al_map_rgb(255, 230, 150) : al_map_rgb(200, 165, 100);
+        al_draw_text(font,txt, btn_x + btn_w / 2, btn_y + btn_h / 2 - 6, ALLEGRO_ALIGN_CENTRE, BTN_LABELS[i]);//usa ek arreglo anteriior para poder saber 
         //que texto poner en cada butoncito
 
 
         if (active) {
-            al_draw_text(font, COLOR_TEXT, btn_x + btn_w - 15, btn_y + btn_h / 2 - 6, 0, ">");//similar a el hover bueno focus sirve para cambiarle el diseno cuando estemos en su pagina
+            al_draw_text(font,al_map_rgb(255,210,80), btn_x + btn_w - 10, btn_y + btn_h / 2 - 6, 0, ">");//similar a el hover bueno focus sirve para cambiarle el diseno cuando estemos en su pagina
         }
 
-        btn_y += btn_h + 25;//incrementa la coordenada y para el siguiente boton, dejando un espacio de 8  entre ellos
+        btn_y += btn_h + 10;//incrementa la coordenada y para el siguiente boton, dejando un espacio de 8  entre ellos
     }
+    al_draw_line(SIDEBAR_W - 1, 0, SIDEBAR_W - 1, SH, al_map_rgb(139, 101, 53), 2);
 }
 
 static void draw_content_area()
@@ -255,42 +263,53 @@ static void dibujar_pagina1(ALLEGRO_FONT* font)
 {
     float x = FORM_X;
 
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "AGREGAR ITEM");
-    al_draw_line(x, 45, x + FORM_FW, 45, COLOR_BORDER, 1);
+    al_draw_text(font, al_map_rgb(40, 20, 5), x, 20, 0, "AGREGAR ITEM");
+    al_draw_line(x, 38, x + FORM_FW, 38, al_map_rgb(139, 101, 53), 1);
+    al_draw_line(x, 41, x + FORM_FW, 41, al_map_rgb(80, 55, 20), 1);
 
     const char* etiquetas[] = { "Titulo:", "Autor:", "año:", "Genero:" };
     const char* valores[] = { input_titulo, input_autor, input_año, input_genero };
 
     for (int i = 0; i < 4; i++) {
         float cy = campo_y(i);
+        // etiqueta
+        al_draw_text(font, al_map_rgb(80, 50, 10), x, cy - 16, 0, etiquetas[i]);
+         //sombra
+        al_draw_filled_rectangle(x + 2, cy + 2, x + FORM_FW + 2, cy + FORM_FH + 2, al_map_rgba(0, 0, 0, 55));
+        ALLEGRO_COLOR fondo = ((i == campo_activo) ? al_map_rgb(210, 220, 200): al_map_rgb(238, 213, 163));
+        al_draw_filled_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, fondo);
 
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, cy - 16, 0, etiquetas[i]);
+        al_draw_rectangle(x,cy,x+FORM_FW, cy+FORM_FH, al_map_rgb(139, 101, 53), 1);
+        al_draw_rectangle(x + 2, cy + 2, x + FORM_FW - 2, cy + FORM_FH - 2, al_map_rgba(200, 150, 60, i == campo_activo ? 120 : 50), 1);
+        al_draw_text(font, al_map_rgb(40, 20, 5), x + 5, cy + 4, 0, valores[i]);
 
         // caja resaltada si es el campo activo
-        ALLEGRO_COLOR caja_color = (i == campo_activo)
+       /* ALLEGRO_COLOR caja_color = (i == campo_activo)
             ? al_map_rgb(200, 220, 255) // azul claro = activo
             : al_map_rgb(255, 255, 255);// blanco = inactivo
         al_draw_filled_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, caja_color);
         al_draw_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, COLOR_BORDER, 1);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 4, cy + 4, 0, valores[i]);
+        al_draw_text(font, al_map_rgb(0, 0, 0), x + 4, cy + 4, 0, valores[i]);1 */
 
         // cursor en el campo activo
         if (i == campo_activo) {
             int tw = al_get_text_width(font, valores[i]);
-            al_draw_line(x + 5 + tw, cy + 3, x + 5 + tw, cy + FORM_FH - 3,
-                al_map_rgb(0, 0, 0), 1);
+            al_draw_line(x + 6 + tw, cy + 3, x + 6 + tw, cy + FORM_FH - 3,
+                al_map_rgb(80, 50, 10), 1);
         }
     }
 
     // boton Guardar
     float by = btn_guardar_y();
-    al_draw_filled_rectangle(x, by, x + 90, by + 24, al_map_rgb(60, 130, 60));
-    al_draw_rectangle(x, by, x + 90, by + 24, COLOR_BORDER, 1);
-    al_draw_text(font, COLOR_TEXT, x + 45, by + 6, ALLEGRO_ALIGN_CENTRE, "Guardar");
+    al_draw_filled_rectangle(x+2, by+2, x + 112, by + 30, al_map_rgba(0, 0, 0,60));
+    al_draw_filled_rectangle(x , by , x + 110, by + 28, al_map_rgb(60, 100,45));
+    al_draw_rectangle(x, by, x + 110, by + 28, al_map_rgb(139, 101, 53), 1);
+    al_draw_rectangle(x+2, by+2, x + 108, by + 26, al_map_rgba(200, 180, 60,100), 1);
+    al_draw_text(font, al_map_rgb(220, 200, 120), x + 55, by + 8, ALLEGRO_ALIGN_CENTRE, "Guardar");
 
     // mensaje de status debajo del boton
     if (msg_status[0] != '\0')
-        al_draw_text(font, al_map_rgb(0, 120, 0), x, by + 32, 0, msg_status);
+        al_draw_text(font, al_map_rgb(60, 110, 40), x, by + 36, 0, msg_status);
 }
 
 // pagina2 — mostrar todos los items (similar a "Mostrar" del menu original)
@@ -298,129 +317,171 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
 {
     float x = FORM_X;
     float y = 100;
-
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "LISTA DE ITEMS");
+    al_draw_text(font, al_map_rgb(40, 20, 5), x, 20, 0, "LISTA DE ITEMS");
+    al_draw_line(x, 38, SW - 20, 38, al_map_rgb(139, 101, 53), 1);
+    al_draw_line(x, 41, SW - 20, 41, al_map_rgb(80, 55, 20), 1);
     //La barra de busqueda
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, 55, 0, "Buscar:");
-    al_draw_filled_rectangle(x + 70, 50, x + 300, 75, al_map_rgb(255, 255, 255));
-    al_draw_rectangle(x + 70, 50, x + 300, 75, COLOR_BORDER, 1);
-    al_draw_text(font, al_map_rgb(0, 0, 0), x + 75, 57, 0, buscar_titulo);
+    al_draw_text(font, al_map_rgb(60, 35, 10), x, 50, 0, "Buscar:");
+    al_draw_filled_rectangle(x + 72, 47, x + 302, 72, al_map_rgba(0, 0, 0 ,50));
+    al_draw_filled_rectangle(x + 70, 45, x + 300, 70, al_map_rgb(238, 213, 163));
+    al_draw_rectangle(x + 70, 45, x + 300, 70, al_map_rgb(139,101,53), 1);
+    al_draw_rectangle(x + 72, 47, x + 298, 68, al_map_rgba(200, 150, 60,80), 1);
+    al_draw_text(font, al_map_rgb(40, 20, 5), x + 75, 52, 0, buscar_titulo);
+    if (buscando) {
+        int tw = al_get_text_width(font, buscar_titulo);
+        al_draw_line(x + 76 + tw, 49, x + 76 + tw, 67, al_map_rgb(80, 50, 10), 1);
+    }
 
-    al_draw_line(x,90, SW - 20,90, COLOR_BORDER, 1);
-
+    al_draw_line(x,82, SW - 20,82, al_map_rgb(139,101,53), 1);
+    al_draw_line(x, 82, SW - 20, 85, al_map_rgb(80, 55, 20), 1);
+    
     if (num_items == 0) {
-        al_draw_text(font, al_map_rgb(150, 150, 150), x, y, 0, "No hay items registrados.");
+        al_draw_text(font, al_map_rgb(120, 80, 30), x, y, 0, "No hay items registrados.");
         return;
     }
 
     // encabezados de columna
-    y = 100;
-    al_draw_text(font, al_map_rgb(80, 80, 80), x, y, 0, "ID");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 40, y, 0, "Titulo");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 250, y, 0, "Autor");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 430, y, 0, "año");
-    al_draw_text(font, al_map_rgb(80, 80, 80), x + 500, y, 0, "Estado");
-    y += 20;
-    al_draw_line(x, y, SW - 20, y, COLOR_BORDER, 1);
-    y += 4;
+    y = 95;
+    al_draw_text(font, al_map_rgb(100, 65, 20), x, y, 0, "ID");
+    al_draw_text(font, al_map_rgb(100,65, 20), x + 50, y, 0, "Titulo");
+    al_draw_text(font, al_map_rgb(100, 65, 20), x + 350, y, 0, "Autor");
+    al_draw_text(font, al_map_rgb(100, 65, 20), x + 580, y, 0, "año");
+    al_draw_text(font, al_map_rgb(100, 65, 20), x + 660, y, 0, "Estado");
+    y += 18;
+    al_draw_line(x, y, SW - 20, y, al_map_rgb(139, 101, 53), 1);
+    y += 6;
 
+    float card_h = 26; //cards
     for (int i = 0; i < num_items; i++) {
+        //filtro
         if (strlen(buscar_titulo) > 0) {
             if (strstr(items[i].titulo, buscar_titulo) == NULL) {
                 continue;
             }
         }
-        if (y > SH - 20) break; // no salir de pantalla
-
-        // filas alternadas para mejor lectura
-        ALLEGRO_COLOR fila = (i % 2 == 0) ? al_map_rgb(248, 248, 248) : al_map_rgb(232, 232, 232);
-        al_draw_filled_rectangle(x - 2, y - 2, SW - 20, y + 14, fila);
-        
+        if (y > SH - 40) break; // no salir de pantalla
+        //sombra 
+        al_draw_filled_rectangle(x - 2, y + 2, SW - 18, y + card_h + 2, al_map_rgba(0, 0, 0, 55));
+        // fondo
+        ALLEGRO_COLOR fondo = (i % 2 == 0) ? al_map_rgb(238, 213, 163) : al_map_rgb(220, 190, 140);
+        al_draw_filled_rectangle(x - 4, y , SW - 20, y + card_h, fondo);
+        // borde interior 
+        al_draw_rectangle(x - 2, y + 2, SW - 22, y + card_h - 2,al_map_rgba(200,150,60,60),1);
         char id_str[8];   snprintf(id_str, 8, "%d", items[i].id);
         char año_str[8]; snprintf(año_str, 8, "%d", items[i].año);
+        float ty = y + card_h / 2 - 6;
 
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, y, 0, id_str);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 40, y, 0, items[i].titulo);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 250, y, 0, items[i].autor);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 430, y, 0, año_str);
+        al_draw_text(font, al_map_rgb(100, 65, 15), x, y, 0, id_str);
+        al_draw_text(font, al_map_rgb(40, 20, 5), x + 50, y, 0, items[i].titulo);
+        al_draw_text(font, al_map_rgb(80, 50, 15), x + 350, y, 0, items[i].autor);
+        al_draw_text(font, al_map_rgb(90, 60, 20), x + 580, y, 0, año_str);
 
-        ALLEGRO_COLOR c_estado = (items[i].estado == DISPONIBLE)
-            ? al_map_rgb(0, 130, 0) : al_map_rgb(180, 40, 40);
-        al_draw_text(font, c_estado, x + 445, y, 0,
-            items[i].estado == DISPONIBLE ? "DISPONIBLE" : "PRESTADO");
-        y += 18;
+        float bx = x + 490;
+        float bw = 82;
+        float bh = 16;
+        float by2 = y + card_h / 2 - bh / 2;
+        if (items[i].estado == DISPONIBLE) {
+            al_draw_filled_rectangle(bx, by2, bx + bw, by2 + bh,
+                al_map_rgb(185, 225, 175));
+            al_draw_rectangle(bx, by2, bx + bw, by2 + bh,
+                al_map_rgb(40, 120, 40), 1);
+            al_draw_text(font, al_map_rgb(20, 90, 20),
+                bx + bw / 2, by2 + 2, ALLEGRO_ALIGN_CENTRE, "DISPONIBLE");
+        }
+        else {
+            al_draw_filled_rectangle(bx, by2, bx + bw, by2 + bh,
+                al_map_rgb(235, 185, 180));
+            al_draw_rectangle(bx, by2, bx + bw, by2 + bh,
+                al_map_rgb(150, 30, 30), 1);
+            al_draw_text(font, al_map_rgb(130, 20, 20),
+                bx + bw / 2, by2 + 2, ALLEGRO_ALIGN_CENTRE, "PRESTADO");
+        }
+
+        y += card_h + 4;
+
     }
 }
 // Modificar
 static void dibujar_pagina3(ALLEGRO_FONT* font){
     float x = FORM_X;
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "MODIFICAR ITEM");
+    al_draw_text(font, al_map_rgb(40, 20, 5), x, 20, 0, "MODIFICAR ITEM");
+    al_draw_line(x, 38, x + FORM_FW, 38, al_map_rgb(139, 101, 53), 1);
+    al_draw_line(x, 41, x + FORM_FW, 41, al_map_rgb(80, 55, 20), 1);
 
-    al_draw_line(x, 45, x + FORM_FW, 45, COLOR_BORDER, 1);
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, 70, 0, "ID: ");
-    al_draw_rectangle(x + 40, 65, x + 120, 90, COLOR_BORDER, 1);
-    al_draw_text(font, al_map_rgb(0, 0, 0), x + 45, 70, 0,mod_id);
-
-    al_draw_filled_rectangle(x + 140, 65, x + 220, 90, al_map_rgb(70, 120, 180));
-    al_draw_text(font, COLOR_TEXT, x + 180, 72, ALLEGRO_ALIGN_CENTRE, "BUSCAR");
+    al_draw_text(font, al_map_rgb(80, 50, 10), x, 55, 0, "ID: ");
+    al_draw_filled_rectangle(x + 32, 52, x + 122, 77,al_map_rgba(0,0,0,55));
+    al_draw_filled_rectangle(x + 30, 50, x + 120, 75, al_map_rgb(238, 213,163));
+    al_draw_rectangle(x + 30, 50, x + 120, 75, al_map_rgb(139, 101, 53),1);
+    al_draw_rectangle(x + 32, 52, x + 118, 73, al_map_rgba(200, 150, 60,80), 1);
+    al_draw_text(font, al_map_rgb(40, 20, 5), x + 35, 57, 0,mod_id);
+    if (!item_encontrado) {
+        int tw = al_get_text_width(font, mod_id);
+        al_draw_line(x + 36 + tw, 54, x + 36 + tw, 72, al_map_rgb(80, 50, 10), 1);
+    }
+    al_draw_filled_rectangle(x + 142, 52, x + 222, 77, al_map_rgba(0, 0,0, 60));
+    al_draw_filled_rectangle(x + 140, 50, x + 220, 75,al_map_rgb(50, 90, 140));
+    al_draw_rectangle(x + 140, 50, x + 220, 75, al_map_rgb(139, 101, 53),1);
+    al_draw_rectangle(x + 142, 52, x + 218, 73, al_map_rgba(150, 180, 220,100),1);
+    al_draw_text(font, al_map_rgb(200, 220, 255), x + 180, 57, ALLEGRO_ALIGN_CENTRE, "BUSCAR");
 
     if (item_encontrado) {
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 120, 0, "Titulo: ");
-        ALLEGRO_COLOR caja = (campo_mod_activo == 0) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
-        al_draw_filled_rectangle(x, 140, x + FORM_FW,162, caja);
-        al_draw_rectangle(x, 140, x + FORM_FW, 162, COLOR_BORDER, 1);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x + 4, 144, 0, mod_titulo);
-        if (campo_mod_activo == 0) {
-            int tw = al_get_text_width(font, mod_titulo);
-            al_draw_line(x + 5 + tw, 143, x + 5 + tw, 160, al_map_rgb(0, 0, 0), 1);
+        const char* etiquetas[] = { "Titulo:", "Autor:", "Anno:", "Genero:" };
+        const char* valores[] = { mod_titulo, mod_autor, mod_año, mod_genero };
+        float pos_y[] = { 100, 180, 260, 340 };  
+        for (int i = 0; i < 4; i++) {
+            float ey = pos_y[i];
+            float cy = ey + 18; 
+            al_draw_text(font, al_map_rgb(80, 50, 10), x, ey, 0, etiquetas[i]);
+            al_draw_filled_rectangle(x + 2, cy + 2, x + FORM_FW + 2, cy + FORM_FH + 2, al_map_rgba(0, 0, 0, 55));
+            ALLEGRO_COLOR fondo = (i == campo_mod_activo)? al_map_rgb(210, 220, 200): al_map_rgb(238, 213, 163);
+            al_draw_filled_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, fondo);
+            al_draw_rectangle(x, cy, x + FORM_FW, cy + FORM_FH,al_map_rgb(139, 101, 53), 1);
+            al_draw_rectangle(x + 2, cy + 2, x + FORM_FW - 2, cy + FORM_FH - 2,al_map_rgba(200, 150, 60, i == campo_mod_activo ? 120 : 50), 1);
+            al_draw_text(font, al_map_rgb(40, 20, 5), x + 5, cy + 4, 0, valores[i]);
+            if (i == campo_mod_activo) {
+                int tw = al_get_text_width(font, valores[i]);
+                al_draw_line( x + 6 + tw, cy + 3, x + 6 + tw, cy + FORM_FH - 3,al_map_rgb(80, 50, 10), 1);
+            }
         }
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 200, 0, "Autor: ");
-        ALLEGRO_COLOR caja1 = (campo_mod_activo == 1) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
-        al_draw_filled_rectangle(x, 220, x + FORM_FW, 242, caja1);
-        al_draw_rectangle(x, 220, x + FORM_FW, 242, COLOR_BORDER, 1);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x+4, 224, 0, mod_autor);
-        if (campo_mod_activo == 1) {
-            int tw = al_get_text_width(font, mod_autor);
-            al_draw_line(x + 5 + tw, 223, x + 5 + tw, 240, al_map_rgb(0, 0, 0), 1);
-        }
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 280, 0, "Año: ");
-        ALLEGRO_COLOR caja2 = (campo_mod_activo == 2) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
-        al_draw_filled_rectangle(x, 300, x + FORM_FW, 322, caja2);
-        al_draw_rectangle(x, 300, x + FORM_FW, 322, COLOR_BORDER, 1);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x+4, 304, 0, mod_año);
-        if (campo_mod_activo == 2) {
-            int tw = al_get_text_width(font, mod_año);
-            al_draw_line(x + 5 + tw, 303, x + 5 + tw, 320, al_map_rgb(0, 0, 0), 1);
-        }
-        al_draw_text(font, al_map_rgb(0, 0, 0), x, 360, 0, "Genero: ");
-        ALLEGRO_COLOR caja3 = (campo_mod_activo == 3) ? al_map_rgb(200, 220, 255) : al_map_rgb(255, 255, 255);
-        al_draw_filled_rectangle(x, 380, x + FORM_FW, 402, caja3);
-        al_draw_rectangle(x, 380, x + FORM_FW, 402, COLOR_BORDER, 1);
-        al_draw_text(font, al_map_rgb(0, 0, 0), x+4, 384, 0, mod_genero);
-        if (campo_mod_activo == 3) {
-            int tw = al_get_text_width(font, mod_genero);
-            al_draw_line(x + 5 + tw, 383, x + 5 + tw, 400, al_map_rgb(0, 0, 0), 1);
-        }
-
-        al_draw_filled_rectangle(x, 450, x + 140, 480, al_map_rgb(60, 130, 60));
-        al_draw_text(font, COLOR_TEXT, x + 70, 458, ALLEGRO_ALIGN_CENTRE, "GUARDAR");
+        float by = 430;
+        al_draw_filled_rectangle(x+2, by+2, x + 142, by+30, al_map_rgba(0,0,0, 60));
+        al_draw_filled_rectangle(x , by , x + 140, by + 28, al_map_rgb( 60, 100, 45));
+        al_draw_rectangle(x, by, x + 140, by + 28, al_map_rgb(139, 101, 53),1);
+        al_draw_rectangle(x+2, by+2, x + 138, by + 26, al_map_rgba(200, 180, 60,100), 1);
+        al_draw_text(font, al_map_rgb(220, 200, 120), x + 70,by+8, ALLEGRO_ALIGN_CENTRE, "GUARDAR CAMBIOS");
     }
-    al_draw_text(font, al_map_rgb(0, 120, 0), x, 520, 0, msg_status);
+    if (msg_status[0] != '\0') {
+        al_draw_text(font, al_map_rgb(60, 110, 40), x, 510, 0, msg_status);
+    }
 }
 //Eliminar
 static void dibujar_pagina4(ALLEGRO_FONT* font)
 {
     float x = FORM_X;
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, 20, 0, "ELIMINAR ITEM");
-    al_draw_line(x, 45, x + FORM_FW, 45, COLOR_BORDER, 1);
-    al_draw_text(font, al_map_rgb(0, 0, 0), x, 80, 0, "ID: ");
-    al_draw_rectangle(x + 40, 75, x + 140, 100, COLOR_BORDER, 1);
-    al_draw_text(font, al_map_rgb(0, 0, 0), x + 45, 80, 0, eliminar_id);
-    al_draw_filled_rectangle(x, 140, x + 120, 170, al_map_rgb(180, 40, 40));
-    al_draw_text(font, COLOR_TEXT, x + 60, 140, ALLEGRO_ALIGN_CENTER, "ELIMINAR");
-    al_draw_text(font, al_map_rgb(0, 120, 0), x, 220, 0, msg_status);
+    al_draw_text(font, al_map_rgb(40, 20, 5), x, 20, 0, "ELIMINAR ITEM");
+    al_draw_line(x, 38, x + FORM_FW, 38, al_map_rgb(139, 101, 53), 1);
+    al_draw_line(x, 41, x + FORM_FW, 41, al_map_rgb(80, 55, 20), 1);
+    al_draw_text(font, al_map_rgb(80, 50, 10), x, 60, 0, "ID a eliminar: ");
+    al_draw_filled_rectangle(x + 2, 82, x + 122, 107, al_map_rgba(0, 0, 0, 55));
+    al_draw_filled_rectangle(x, 80, x + 120, 105, al_map_rgb(139, 213, 163));
+    al_draw_rectangle(x, 80, x + 120, 105, al_map_rgb(139, 101, 53), 1);
+    al_draw_rectangle(x + 2, 82, x + 118, 103, al_map_rgba(200, 150, 60, 80), 1);
+    al_draw_text(font, al_map_rgb(40, 20, 5), x + 5, 87, 0, eliminar_id);
+    int tw = al_get_text_width(font, eliminar_id);
+    al_draw_line(x + 6 + tw, 84, x + 6 + tw, 102, al_map_rgb(80, 50, 10), 1);
+    al_draw_text(font, al_map_rgb(140, 60, 20),x, 120, 0, "Esta accion no se puede permitir en deshacer!!!");
+    float by = 155;
+    al_draw_filled_rectangle(x+2,by+2,x+142,by+30, al_map_rgba(0,0, 0, 70));
+    al_draw_filled_rectangle(x,by, x + 140,by+2, al_map_rgb(120, 35, 35));
+    al_draw_rectangle(x, by, x + 140,by+28, al_map_rgb(139, 101, 53), 1);
+    al_draw_rectangle(x + 2, by+2, x + 138, by+26, al_map_rgba(200, 100, 80, 100), 1);
+    al_draw_text(font, al_map_rgb(255, 200, 180), x + 70, by+8, ALLEGRO_ALIGN_CENTER, "ELIMINAR");
+    if (msg_status[0] != '\0') {
+        ALLEGRO_COLOR c = (strstr(msg_status, "eliminado") != NULL) ? al_map_rgb(60, 110, 40) : al_map_rgb(160, 40, 20);
+        al_draw_text(font, c, x, 200, 0, msg_status);
 
 
+    }
 }
 
 static void dibujar_pagina5(ALLEGRO_FONT* font)
@@ -482,17 +543,17 @@ int main()
 
             // Solo si el clic está dentro del sidebar
             if (mx <= SIDEBAR_W) {
-                float btn_y = 70;
-                float btn_h = 40;
-                float btn_w = SIDEBAR_W - 20;
-                float btn_x = 10;
+                float btn_y = 56;
+                float btn_h = 38;
+                float btn_w = SIDEBAR_W - 16;
+                float btn_x = 8;
 
                 for (int i = 0; i < 5; i++) {
                     if (mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h) {
                         current_page = (Section)i;
                         break;
                     }
-                    btn_y += btn_h + 25;
+                    btn_y += btn_h + 10;
                 }
             }
 
@@ -537,52 +598,36 @@ int main()
             }
             // pagina 3
             if (current_page == SEC_PAGE3) {
-                float bx1 = FORM_X + 140;
-                float by1 = 65;
-                float bx2 = FORM_X + 220;
-                float by2 = 90;
-                if (mx >= bx1 && mx <= bx2 && my >= by1 && my <= by2) {
-                    strcpy_s(msg_status, "Boton Buscar");
+                if (mx >= FORM_X+140 && mx <= FORM_X+220 && my >= 50 && my <= 75) {
                     buscar_item(atoi(mod_id));
-                    if (item_encontrado) {
-                        strcpy_s(msg_status, "Libro encontrado");
-                    }
-                    else {
-                        strcpy_s(msg_status, "ID no encontrado");
-                    }
-                }
-                if (mx >= FORM_X && mx <= FORM_X + FORM_FW) {
-                    if (my >= 140 && my <= 162) {
-                        campo_mod_activo = 0;
-                    }
-                    else if(my>=220&&my<=242){
-                        campo_mod_activo = 1;
-                    }
-                    else if (my >= 300 && my <= 322) {
-                        campo_mod_activo = 2;
-                    }
-                    else if (my >= 380 && my <= 402) {
-                        campo_mod_activo = 3;
-                    }
-                }
-                if (item_encontrado) {
-                    if (mx >= FORM_X && mx <= FORM_X + 140 && my >= 450 && my <= 480) {
-                        modificar_item(atoi(mod_id), mod_titulo, mod_autor, atoi(mod_año), mod_genero);
-                        strcpy_s(msg_status, sizeof(msg_status), "Libro modificado");
+                    strcpy_s(msg_status, sizeof(msg_status), item_encontrado ? "Libro encontrado" : "ID no encontrado");
+                    if (item_encontrado && mx >= FORM_X && mx <= FORM_X + FORM_FW) {
+                        float pos_y[] = { 100,180,260,340 };
+                        for (int i = 0;i < 4;i++) {
+                            float cy = pos_y[i] + 18;
+                            if (my >= cy && my <= cy + FORM_FH) {
+                                campo_mod_activo = i;
+                                break;
+                            }
+                        }
+                        if (mx >= FORM_X && mx <= FORM_X + 140 && my >= 430 && my <= 458) {
+                            modificar_item(atoi(mod_id), mod_titulo, mod_autor, atoi(mod_año), mod_genero);
+                            strcpy_s(msg_status, sizeof(msg_status), "Libro modificado");
+                        }
                     }
                 }
             }
             //pagina 4
             if (current_page == SEC_PAGE4) {
-                if (mx >= FORM_X && mx <= FORM_X + 120 && my >= 140 && my <= 170) {
+                if (mx >= FORM_X && mx <= FORM_X + 140 && my >= 150 && my <= 180) {
                     int id = atoi(eliminar_id);
                     int antes = num_items;
                     bajas(id);
                     if (num_items < antes) {
-                        strcpy_s(msg_status, "Libro eliminado");
+                        strcpy_s(msg_status,sizeof(msg_status), "Libro eliminado");
                     }
                     else {
-                        strcpy_s(msg_status, "ID no encontrado");
+                        strcpy_s(msg_status,sizeof(msg_status), "ID no encontrado");
                     }
                     eliminar_id[0] = '\0';
                 }
