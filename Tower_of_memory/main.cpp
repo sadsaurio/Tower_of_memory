@@ -7,6 +7,7 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <stdio.h>
+#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,9 +25,9 @@ static const int SIDEBAR_W = 200;//ancho del sidebar
 #define COLOR_BORDER    al_map_rgb(232, 200, 122)   // Borde
 
 
-enum Section { SEC_PAGE1 = 0, SEC_PAGE2, SEC_PAGE3, SEC_PAGE4, SEC_PAGE5 };//enum para mostrar numero de pagina en el que estas
+enum Section { SEC_PAGE1 = 0, SEC_PAGE2, SEC_PAGE3, SEC_PAGE4 };//enum para mostrar numero de pagina en el que estas
 enum Estado { DISPONIBLE, PRESTADO };
-static const char* BTN_LABELS[] = { "Agregar Item", "Lista de Item", "Modificar Item", "Eliminacion Item", "Pagina 5" };//texto que se mostrara en los botones de la pagina
+static const char* BTN_LABELS[] = { "a\xC3\xB1""adir" , "Consultar", "Modificar", "Eliminar" };//texto que se mostrara en los botones de la pagina
 static Section current_page = SEC_PAGE1;
 
 // ── Estructura de datos (similar a struct Amigo del codigo original) ─
@@ -51,6 +52,7 @@ static char mod_titulo[TAM] = "";
 static char mod_autor[TAM] = "";
 static char mod_año[8] = "";
 static char mod_genero[TAM] = "";
+static Estado mod_estado = DISPONIBLE;
 // ── Funciones de archivo y memoria (estilo del codigo original) ──────
 
 // carga los items del archivo binario al iniciar — similar a fopen del original
@@ -130,13 +132,14 @@ void liberar_items() {
     num_items = 0;
 }
 // modificar un item por id
-void modificar_item(int id, const char* titulo, const char* autor, int año, const char* genero) {
+void modificar_item(int id, const char* titulo, const char* autor, int año, const char* genero, Estado estado) {
     for (int i = 0; i < num_items; i++) {
         if (items[i].id == id) {
             strncpy_s(items[i].titulo, TAM, titulo, TAM - 1);
             strncpy_s(items[i].autor, TAM, autor, TAM - 1);
             items[i].año = año;
             strncpy_s(items[i].genero, TAM, genero, TAM - 1);
+            items[i].estado = estado;
             guardar_items();
             printf("MODIFICADO\n");
             return;
@@ -153,8 +156,9 @@ void buscar_item(int id) {
         if (items[i].id == id) {
             strcpy_s(mod_titulo, items[i].titulo);
             strcpy_s(mod_autor, items[i].autor);
-            sprintf_s(mod_año,"%d", items[i].año);
+            sprintf_s(mod_año, "%d", items[i].año);
             strcpy_s(mod_genero, items[i].genero);
+            mod_estado = items[i].estado;
             item_encontrado = true;
             return;
         }
@@ -205,11 +209,11 @@ static void draw_sidebar(ALLEGRO_FONT* font)
 
 
     // Título
-    al_draw_text(font, al_map_rgb(255,220,140),SIDEBAR_W / 2, 12, ALLEGRO_ALIGN_CENTRE, "Menu");//escribe menu en el sidebar te pide
+    al_draw_text(font, al_map_rgb(255, 220, 140), SIDEBAR_W / 2, 12, ALLEGRO_ALIGN_CENTRE, "Menu");//escribe menu en el sidebar te pide
     //la fuente,color,coordenada x, coordenada y, alineacion y el texto a escribir
 
     // Línea separadora
-    al_draw_line(8, 38, SIDEBAR_W - 8, 38, al_map_rgb(139,101,53), 1);//dibuja una linea no tiene muhco chiste la veda
+    al_draw_line(8, 38, SIDEBAR_W - 8, 38, al_map_rgb(139, 101, 53), 1);//dibuja una linea no tiene muhco chiste la veda
     al_draw_line(8, 41, SIDEBAR_W - 8, 41, al_map_rgb(80, 55, 20), 1);
 
     // Botones de navegación
@@ -218,24 +222,24 @@ static void draw_sidebar(ALLEGRO_FONT* font)
     float btn_w = SIDEBAR_W - 16;//coordenada x del primer boton
     float btn_x = 8;//coordenada x del segundo boton
 
-    for (int i = 0; i < 5; i++) {//ciclo para dibujar 5 botones
+    for (int i = 0; i < 4; i++) {//ciclo para dibujar 5 botones
         bool active = (i == (int)current_page);
         al_draw_filled_rectangle(btn_x + 2, btn_y + 2, btn_x + btn_w + 2, btn_y + btn_h + 2, al_map_rgba(0, 0, 0, 80));
         // Fondo del botón
         ALLEGRO_COLOR btn_color = active ? COLOR_BTN_ACTIVE : COLOR_BTN_NORMAL;//si el boton es activo se pinta con un color mas claro y si no con un color mas oscuro
         al_draw_filled_rectangle(btn_x, btn_y, btn_x + btn_w, btn_y + btn_h, btn_color);//dibuja el rectangulo del boton con el color correspondiente
         //recibe igual tamano que el rectangulo del sidebar pero con un margen de 10 pixeles a cada lado
-        al_draw_rectangle(btn_x, btn_y, btn_x + btn_w, btn_y + btn_h, al_map_rgb(139,101,53), 1);//dibuja el borde del boton con un color de borde
+        al_draw_rectangle(btn_x, btn_y, btn_x + btn_w, btn_y + btn_h, al_map_rgb(139, 101, 53), 1);//dibuja el borde del boton con un color de borde
         // El borde mas claro el interior
         al_draw_rectangle(btn_x + 2, btn_y + 2, btn_x + btn_w - 2, btn_y + btn_h - 2, al_map_rgba(200, 150, 60, active ? 180 : 80), 1);
         // Texto del botón
         ALLEGRO_COLOR txt = active ? al_map_rgb(255, 230, 150) : al_map_rgb(200, 165, 100);
-        al_draw_text(font,txt, btn_x + btn_w / 2, btn_y + btn_h / 2 - 6, ALLEGRO_ALIGN_CENTRE, BTN_LABELS[i]);//usa ek arreglo anteriior para poder saber 
+        al_draw_text(font, txt, btn_x + btn_w / 2, btn_y + btn_h / 2 - 6, ALLEGRO_ALIGN_CENTRE, BTN_LABELS[i]);//usa ek arreglo anteriior para poder saber 
         //que texto poner en cada butoncito
 
 
         if (active) {
-            al_draw_text(font,al_map_rgb(255,210,80), btn_x + btn_w - 10, btn_y + btn_h / 2 - 6, 0, ">");//similar a el hover bueno focus sirve para cambiarle el diseno cuando estemos en su pagina
+            al_draw_text(font, al_map_rgb(255, 210, 80), btn_x + btn_w - 10, btn_y + btn_h / 2 - 6, 0, ">");//similar a el hover bueno focus sirve para cambiarle el diseno cuando estemos en su pagina
         }
 
         btn_y += btn_h + 10;//incrementa la coordenada y para el siguiente boton, dejando un espacio de 8  entre ellos
@@ -267,19 +271,19 @@ static void dibujar_pagina1(ALLEGRO_FONT* font)
     al_draw_line(x, 38, x + FORM_FW, 38, al_map_rgb(139, 101, 53), 1);
     al_draw_line(x, 41, x + FORM_FW, 41, al_map_rgb(80, 55, 20), 1);
 
-    const char* etiquetas[] = { "Titulo:", "Autor:", "año:", "Genero:" };
+    const char* etiquetas[] = { "Titulo:", "Autor:", "a\xC3\xB1o:", "Genero:" };
     const char* valores[] = { input_titulo, input_autor, input_año, input_genero };
 
     for (int i = 0; i < 4; i++) {
         float cy = campo_y(i);
         // etiqueta
         al_draw_text(font, al_map_rgb(80, 50, 10), x, cy - 16, 0, etiquetas[i]);
-         //sombra
+        //sombra
         al_draw_filled_rectangle(x + 2, cy + 2, x + FORM_FW + 2, cy + FORM_FH + 2, al_map_rgba(0, 0, 0, 55));
-        ALLEGRO_COLOR fondo = ((i == campo_activo) ? al_map_rgb(210, 220, 200): al_map_rgb(238, 213, 163));
+        ALLEGRO_COLOR fondo = ((i == campo_activo) ? al_map_rgb(210, 220, 200) : al_map_rgb(238, 213, 163));
         al_draw_filled_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, fondo);
 
-        al_draw_rectangle(x,cy,x+FORM_FW, cy+FORM_FH, al_map_rgb(139, 101, 53), 1);
+        al_draw_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, al_map_rgb(139, 101, 53), 1);
         al_draw_rectangle(x + 2, cy + 2, x + FORM_FW - 2, cy + FORM_FH - 2, al_map_rgba(200, 150, 60, i == campo_activo ? 120 : 50), 1);
         al_draw_text(font, al_map_rgb(40, 20, 5), x + 5, cy + 4, 0, valores[i]);
 
@@ -301,10 +305,10 @@ static void dibujar_pagina1(ALLEGRO_FONT* font)
 
     // boton Guardar
     float by = btn_guardar_y();
-    al_draw_filled_rectangle(x+2, by+2, x + 112, by + 30, al_map_rgba(0, 0, 0,60));
-    al_draw_filled_rectangle(x , by , x + 110, by + 28, al_map_rgb(60, 100,45));
+    al_draw_filled_rectangle(x + 2, by + 2, x + 112, by + 30, al_map_rgba(0, 0, 0, 60));
+    al_draw_filled_rectangle(x, by, x + 110, by + 28, al_map_rgb(60, 100, 45));
     al_draw_rectangle(x, by, x + 110, by + 28, al_map_rgb(139, 101, 53), 1);
-    al_draw_rectangle(x+2, by+2, x + 108, by + 26, al_map_rgba(200, 180, 60,100), 1);
+    al_draw_rectangle(x + 2, by + 2, x + 108, by + 26, al_map_rgba(200, 180, 60, 100), 1);
     al_draw_text(font, al_map_rgb(220, 200, 120), x + 55, by + 8, ALLEGRO_ALIGN_CENTRE, "Guardar");
 
     // mensaje de status debajo del boton
@@ -322,19 +326,19 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
     al_draw_line(x, 41, SW - 20, 41, al_map_rgb(80, 55, 20), 1);
     //La barra de busqueda
     al_draw_text(font, al_map_rgb(60, 35, 10), x, 50, 0, "Buscar:");
-    al_draw_filled_rectangle(x + 72, 47, x + 302, 72, al_map_rgba(0, 0, 0 ,50));
+    al_draw_filled_rectangle(x + 72, 47, x + 302, 72, al_map_rgba(0, 0, 0, 50));
     al_draw_filled_rectangle(x + 70, 45, x + 300, 70, al_map_rgb(238, 213, 163));
-    al_draw_rectangle(x + 70, 45, x + 300, 70, al_map_rgb(139,101,53), 1);
-    al_draw_rectangle(x + 72, 47, x + 298, 68, al_map_rgba(200, 150, 60,80), 1);
+    al_draw_rectangle(x + 70, 45, x + 300, 70, al_map_rgb(139, 101, 53), 1);
+    al_draw_rectangle(x + 72, 47, x + 298, 68, al_map_rgba(200, 150, 60, 80), 1);
     al_draw_text(font, al_map_rgb(40, 20, 5), x + 75, 52, 0, buscar_titulo);
     if (buscando) {
         int tw = al_get_text_width(font, buscar_titulo);
         al_draw_line(x + 76 + tw, 49, x + 76 + tw, 67, al_map_rgb(80, 50, 10), 1);
     }
 
-    al_draw_line(x,82, SW - 20,82, al_map_rgb(139,101,53), 1);
+    al_draw_line(x, 82, SW - 20, 82, al_map_rgb(139, 101, 53), 1);
     al_draw_line(x, 82, SW - 20, 85, al_map_rgb(80, 55, 20), 1);
-    
+
     if (num_items == 0) {
         al_draw_text(font, al_map_rgb(120, 80, 30), x, y, 0, "No hay items registrados.");
         return;
@@ -343,7 +347,7 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
     // encabezados de columna
     y = 95;
     al_draw_text(font, al_map_rgb(100, 65, 20), x, y, 0, "ID");
-    al_draw_text(font, al_map_rgb(100,65, 20), x + 50, y, 0, "Titulo");
+    al_draw_text(font, al_map_rgb(100, 65, 20), x + 50, y, 0, "Titulo");
     al_draw_text(font, al_map_rgb(100, 65, 20), x + 350, y, 0, "Autor");
     al_draw_text(font, al_map_rgb(100, 65, 20), x + 580, y, 0, "año");
     al_draw_text(font, al_map_rgb(100, 65, 20), x + 660, y, 0, "Estado");
@@ -364,9 +368,9 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
         al_draw_filled_rectangle(x - 2, y + 2, SW - 18, y + card_h + 2, al_map_rgba(0, 0, 0, 55));
         // fondo
         ALLEGRO_COLOR fondo = (i % 2 == 0) ? al_map_rgb(238, 213, 163) : al_map_rgb(220, 190, 140);
-        al_draw_filled_rectangle(x - 4, y , SW - 20, y + card_h, fondo);
+        al_draw_filled_rectangle(x - 4, y, SW - 20, y + card_h, fondo);
         // borde interior 
-        al_draw_rectangle(x - 2, y + 2, SW - 22, y + card_h - 2,al_map_rgba(200,150,60,60),1);
+        al_draw_rectangle(x - 2, y + 2, SW - 22, y + card_h - 2, al_map_rgba(200, 150, 60, 60), 1);
         char id_str[8];   snprintf(id_str, 8, "%d", items[i].id);
         char año_str[8]; snprintf(año_str, 8, "%d", items[i].año);
         float ty = y + card_h / 2 - 6;
@@ -402,53 +406,72 @@ static void dibujar_pagina2(ALLEGRO_FONT* font)
     }
 }
 // Modificar
-static void dibujar_pagina3(ALLEGRO_FONT* font){
+static void dibujar_pagina3(ALLEGRO_FONT* font) {
     float x = FORM_X;
     al_draw_text(font, al_map_rgb(40, 20, 5), x, 20, 0, "MODIFICAR ITEM");
     al_draw_line(x, 38, x + FORM_FW, 38, al_map_rgb(139, 101, 53), 1);
     al_draw_line(x, 41, x + FORM_FW, 41, al_map_rgb(80, 55, 20), 1);
 
     al_draw_text(font, al_map_rgb(80, 50, 10), x, 55, 0, "ID: ");
-    al_draw_filled_rectangle(x + 32, 52, x + 122, 77,al_map_rgba(0,0,0,55));
-    al_draw_filled_rectangle(x + 30, 50, x + 120, 75, al_map_rgb(238, 213,163));
-    al_draw_rectangle(x + 30, 50, x + 120, 75, al_map_rgb(139, 101, 53),1);
-    al_draw_rectangle(x + 32, 52, x + 118, 73, al_map_rgba(200, 150, 60,80), 1);
-    al_draw_text(font, al_map_rgb(40, 20, 5), x + 35, 57, 0,mod_id);
+    al_draw_filled_rectangle(x + 32, 52, x + 122, 77, al_map_rgba(0, 0, 0, 55));
+    al_draw_filled_rectangle(x + 30, 50, x + 120, 75, al_map_rgb(238, 213, 163));
+    al_draw_rectangle(x + 30, 50, x + 120, 75, al_map_rgb(139, 101, 53), 1);
+    al_draw_rectangle(x + 32, 52, x + 118, 73, al_map_rgba(200, 150, 60, 80), 1);
+    al_draw_text(font, al_map_rgb(40, 20, 5), x + 35, 57, 0, mod_id);
     if (!item_encontrado) {
         int tw = al_get_text_width(font, mod_id);
         al_draw_line(x + 36 + tw, 54, x + 36 + tw, 72, al_map_rgb(80, 50, 10), 1);
     }
-    al_draw_filled_rectangle(x + 142, 52, x + 222, 77, al_map_rgba(0, 0,0, 60));
-    al_draw_filled_rectangle(x + 140, 50, x + 220, 75,al_map_rgb(50, 90, 140));
-    al_draw_rectangle(x + 140, 50, x + 220, 75, al_map_rgb(139, 101, 53),1);
-    al_draw_rectangle(x + 142, 52, x + 218, 73, al_map_rgba(150, 180, 220,100),1);
+    al_draw_filled_rectangle(x + 142, 52, x + 222, 77, al_map_rgba(0, 0, 0, 60));
+    al_draw_filled_rectangle(x + 140, 50, x + 220, 75, al_map_rgb(50, 90, 140));
+    al_draw_rectangle(x + 140, 50, x + 220, 75, al_map_rgb(139, 101, 53), 1);
+    al_draw_rectangle(x + 142, 52, x + 218, 73, al_map_rgba(150, 180, 220, 100), 1);
     al_draw_text(font, al_map_rgb(200, 220, 255), x + 180, 57, ALLEGRO_ALIGN_CENTRE, "BUSCAR");
 
     if (item_encontrado) {
         const char* etiquetas[] = { "Titulo:", "Autor:", "Anno:", "Genero:" };
         const char* valores[] = { mod_titulo, mod_autor, mod_año, mod_genero };
-        float pos_y[] = { 100, 180, 260, 340 };  
+        float pos_y[] = { 100, 180, 260, 340 };
         for (int i = 0; i < 4; i++) {
             float ey = pos_y[i];
-            float cy = ey + 18; 
+            float cy = ey + 18;
             al_draw_text(font, al_map_rgb(80, 50, 10), x, ey, 0, etiquetas[i]);
             al_draw_filled_rectangle(x + 2, cy + 2, x + FORM_FW + 2, cy + FORM_FH + 2, al_map_rgba(0, 0, 0, 55));
-            ALLEGRO_COLOR fondo = (i == campo_mod_activo)? al_map_rgb(210, 220, 200): al_map_rgb(238, 213, 163);
+            ALLEGRO_COLOR fondo = (i == campo_mod_activo) ? al_map_rgb(210, 220, 200) : al_map_rgb(238, 213, 163);
             al_draw_filled_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, fondo);
-            al_draw_rectangle(x, cy, x + FORM_FW, cy + FORM_FH,al_map_rgb(139, 101, 53), 1);
-            al_draw_rectangle(x + 2, cy + 2, x + FORM_FW - 2, cy + FORM_FH - 2,al_map_rgba(200, 150, 60, i == campo_mod_activo ? 120 : 50), 1);
+            al_draw_rectangle(x, cy, x + FORM_FW, cy + FORM_FH, al_map_rgb(139, 101, 53), 1);
+            al_draw_rectangle(x + 2, cy + 2, x + FORM_FW - 2, cy + FORM_FH - 2, al_map_rgba(200, 150, 60, i == campo_mod_activo ? 120 : 50), 1);
             al_draw_text(font, al_map_rgb(40, 20, 5), x + 5, cy + 4, 0, valores[i]);
             if (i == campo_mod_activo) {
                 int tw = al_get_text_width(font, valores[i]);
-                al_draw_line( x + 6 + tw, cy + 3, x + 6 + tw, cy + FORM_FH - 3,al_map_rgb(80, 50, 10), 1);
+                al_draw_line(x + 6 + tw, cy + 3, x + 6 + tw, cy + FORM_FH - 3, al_map_rgb(80, 50, 10), 1);
             }
         }
-        float by = 430;
-        al_draw_filled_rectangle(x+2, by+2, x + 142, by+30, al_map_rgba(0,0,0, 60));
-        al_draw_filled_rectangle(x , by , x + 140, by + 28, al_map_rgb( 60, 100, 45));
-        al_draw_rectangle(x, by, x + 140, by + 28, al_map_rgb(139, 101, 53),1);
-        al_draw_rectangle(x+2, by+2, x + 138, by + 26, al_map_rgba(200, 180, 60,100), 1);
-        al_draw_text(font, al_map_rgb(220, 200, 120), x + 70,by+8, ALLEGRO_ALIGN_CENTRE, "GUARDAR CAMBIOS");
+
+        // checkbox de estado
+        al_draw_text(font, al_map_rgb(80, 50, 10), x, 390, 0, "Estado:");
+        // opcion DISPONIBLE
+        al_draw_filled_rectangle(x + 2, 409, x + 16, 423, al_map_rgba(0, 0, 0, 40));
+        al_draw_filled_rectangle(x, 407, x + 14, 421, al_map_rgb(238, 213, 163));
+        al_draw_rectangle(x, 407, x + 14, 421, al_map_rgb(139, 101, 53), 1);
+        if (mod_estado == DISPONIBLE)
+            al_draw_filled_rectangle(x + 3, 410, x + 11, 418, al_map_rgb(40, 120, 40));
+        al_draw_text(font, al_map_rgb(40, 20, 5), x + 20, 407, 0, "Disponible");
+        // opcion PRESTADO
+        al_draw_filled_rectangle(x + 102, 409, x + 116, 423, al_map_rgba(0, 0, 0, 40));
+        al_draw_filled_rectangle(x + 100, 407, x + 114, 421, al_map_rgb(238, 213, 163));
+        al_draw_rectangle(x + 100, 407, x + 114, 421, al_map_rgb(139, 101, 53), 1);
+        if (mod_estado == PRESTADO)
+            al_draw_filled_rectangle(x + 103, 410, x + 111, 418, al_map_rgb(150, 30, 30));
+        al_draw_text(font, al_map_rgb(40, 20, 5), x + 120, 407, 0, "Prestado");
+
+        // boton guardar cambios
+        float by = 440;
+        al_draw_filled_rectangle(x + 2, by + 2, x + 142, by + 30, al_map_rgba(0, 0, 0, 60));
+        al_draw_filled_rectangle(x, by, x + 140, by + 28, al_map_rgb(60, 100, 45));
+        al_draw_rectangle(x, by, x + 140, by + 28, al_map_rgb(139, 101, 53), 1);
+        al_draw_rectangle(x + 2, by + 2, x + 138, by + 26, al_map_rgba(200, 180, 60, 100), 1);
+        al_draw_text(font, al_map_rgb(220, 200, 120), x + 70, by + 8, ALLEGRO_ALIGN_CENTRE, "GUARDAR CAMBIOS");
     }
     if (msg_status[0] != '\0') {
         al_draw_text(font, al_map_rgb(60, 110, 40), x, 510, 0, msg_status);
@@ -469,24 +492,19 @@ static void dibujar_pagina4(ALLEGRO_FONT* font)
     al_draw_text(font, al_map_rgb(40, 20, 5), x + 5, 87, 0, eliminar_id);
     int tw = al_get_text_width(font, eliminar_id);
     al_draw_line(x + 6 + tw, 84, x + 6 + tw, 102, al_map_rgb(80, 50, 10), 1);
-    al_draw_text(font, al_map_rgb(140, 60, 20),x, 120, 0, "Esta accion no se puede permitir en deshacer!!!");
+    al_draw_text(font, al_map_rgb(140, 60, 20), x, 120, 0, "Esta accion no se puede permitir en deshacer!!!");
     float by = 155;
-    al_draw_filled_rectangle(x+2,by+2,x+142,by+30, al_map_rgba(0,0, 0, 70));
-    al_draw_filled_rectangle(x,by, x + 140,by+2, al_map_rgb(120, 35, 35));
-    al_draw_rectangle(x, by, x + 140,by+28, al_map_rgb(139, 101, 53), 1);
-    al_draw_rectangle(x + 2, by+2, x + 138, by+26, al_map_rgba(200, 100, 80, 100), 1);
-    al_draw_text(font, al_map_rgb(255, 200, 180), x + 70, by+8, ALLEGRO_ALIGN_CENTER, "ELIMINAR");
+    al_draw_filled_rectangle(x + 2, by + 2, x + 142, by + 30, al_map_rgba(0, 0, 0, 70));
+    al_draw_filled_rectangle(x, by, x + 140, by + 2, al_map_rgb(120, 35, 35));
+    al_draw_rectangle(x, by, x + 140, by + 28, al_map_rgb(139, 101, 53), 1);
+    al_draw_rectangle(x + 2, by + 2, x + 138, by + 26, al_map_rgba(200, 100, 80, 100), 1);
+    al_draw_text(font, al_map_rgb(255, 200, 180), x + 70, by + 8, ALLEGRO_ALIGN_CENTER, "ELIMINAR");
     if (msg_status[0] != '\0') {
         ALLEGRO_COLOR c = (strstr(msg_status, "eliminado") != NULL) ? al_map_rgb(60, 110, 40) : al_map_rgb(160, 40, 20);
         al_draw_text(font, c, x, 200, 0, msg_status);
 
 
     }
-}
-
-static void dibujar_pagina5(ALLEGRO_FONT* font)
-{
-    // TODO: tu contenido de pagina 5
 }
 
 
@@ -519,7 +537,8 @@ int main()
     //y así controlar el redraw de la pantalla
 
 
-    ALLEGRO_FONT* font = al_create_builtin_font();//crea una fuente de texto incorporada para poder dibujar texto igual esto se va a cambiar por algo asm gotico despues
+    ALLEGRO_FONT* font = al_load_ttf_font("C:\\Users\\Said\\source\\repos\\Tower_of_memory\\Tower_of_memory\\Blacklettersh.TTF", 16, 0);//crea una fuente de texto incorporada para poder dibujar texto igual esto se va a cambiar por algo asm gotico despues
+    if (!font) font = al_create_builtin_font(); // fallback si no carga la fuente
 
 
     bool redraw = true;
@@ -548,7 +567,7 @@ int main()
                 float btn_w = SIDEBAR_W - 16;
                 float btn_x = 8;
 
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 4; i++) {
                     if (mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h) {
                         current_page = (Section)i;
                         break;
@@ -598,23 +617,46 @@ int main()
             }
             // pagina 3
             if (current_page == SEC_PAGE3) {
-                if (mx >= FORM_X+140 && mx <= FORM_X+220 && my >= 50 && my <= 75) {
+                // boton buscar
+                if (mx >= FORM_X + 140 && mx <= FORM_X + 220 && my >= 50 && my <= 75) {
                     buscar_item(atoi(mod_id));
                     strcpy_s(msg_status, sizeof(msg_status), item_encontrado ? "Libro encontrado" : "ID no encontrado");
-                    if (item_encontrado && mx >= FORM_X && mx <= FORM_X + FORM_FW) {
-                        float pos_y[] = { 100,180,260,340 };
-                        for (int i = 0;i < 4;i++) {
-                            float cy = pos_y[i] + 18;
-                            if (my >= cy && my <= cy + FORM_FH) {
-                                campo_mod_activo = i;
-                                break;
-                            }
-                        }
-                        if (mx >= FORM_X && mx <= FORM_X + 140 && my >= 430 && my <= 458) {
-                            modificar_item(atoi(mod_id), mod_titulo, mod_autor, atoi(mod_año), mod_genero);
-                            strcpy_s(msg_status, sizeof(msg_status), "Libro modificado");
+                }
+                if (item_encontrado) {
+                    // seleccionar campo de texto
+                    float pos_y[] = { 100,180,260,340 };
+                    for (int i = 0; i < 4; i++) {
+                        float cy = pos_y[i] + 18;
+                        if (mx >= FORM_X && mx <= FORM_X + FORM_FW && my >= cy && my <= cy + FORM_FH) {
+                            campo_mod_activo = i;
+                            break;
                         }
                     }
+                    // checkbox disponible
+                    if (mx >= FORM_X && mx <= FORM_X + 14 && my >= 407 && my <= 421) {
+                        mod_estado = DISPONIBLE;
+                    }
+                    // checkbox prestado
+                    if (mx >= FORM_X + 100 && mx <= FORM_X + 114 && my >= 407 && my <= 421) {
+                        mod_estado = PRESTADO;
+                    }
+                    // boton guardar cambios
+                    if (mx >= FORM_X && mx <= FORM_X + 140 && my >= 440 && my <= 468) {
+                        modificar_item(atoi(mod_id), mod_titulo, mod_autor, atoi(mod_año), mod_genero, mod_estado);
+                        strcpy_s(msg_status, sizeof(msg_status), "Libro modificado");
+                        modificar_item(atoi(mod_id), mod_titulo, mod_autor, atoi(mod_año), mod_genero, mod_estado);
+                        strcpy_s(msg_status, sizeof(msg_status), "Libro modificado");
+                        // limpiar campos tras guardar
+                        mod_id[0] = '\0';
+                        mod_titulo[0] = '\0';
+                        mod_autor[0] = '\0';
+                        mod_año[0] = '\0';
+                        mod_genero[0] = '\0';
+                        mod_estado = DISPONIBLE;
+                        item_encontrado = false;
+                        campo_mod_activo = 0;
+                    }
+                   
                 }
             }
             //pagina 4
@@ -624,15 +666,15 @@ int main()
                     int antes = num_items;
                     bajas(id);
                     if (num_items < antes) {
-                        strcpy_s(msg_status,sizeof(msg_status), "Libro eliminado");
+                        strcpy_s(msg_status, sizeof(msg_status), "Libro eliminado");
                     }
                     else {
-                        strcpy_s(msg_status,sizeof(msg_status), "ID no encontrado");
+                        strcpy_s(msg_status, sizeof(msg_status), "ID no encontrado");
                     }
                     eliminar_id[0] = '\0';
                 }
             }
-    
+
         }
 
         // Salir con ESC
@@ -690,7 +732,7 @@ int main()
                     }
                 }
             }
-            
+
             //pagina 3 :captura texto
             if (current_page == SEC_PAGE3 && item_encontrado) {
                 char* campos[] = {
@@ -739,7 +781,7 @@ int main()
                 }
             }
         }
-        
+
 
         // Dibujo
         if (redraw && al_is_event_queue_empty(queue))
@@ -760,7 +802,6 @@ int main()
             case SEC_PAGE2: dibujar_pagina2(font); break;
             case SEC_PAGE3: dibujar_pagina3(font); break;
             case SEC_PAGE4: dibujar_pagina4(font); break;
-            case SEC_PAGE5: dibujar_pagina5(font); break;
             }
 
             al_flip_display();
